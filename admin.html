@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administración · Bar La Piscina</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --teal-dark:#0e5a5c;
+    --teal-mid:#3fa9a3;
+    --sun-yellow:#ffcf3f;
+    --cream:#fffdf6;
+    --ink:#123638;
+    --danger:#c94f4f;
+  }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    font-family:'Poppins', sans-serif;
+    background:linear-gradient(180deg, var(--teal-dark), var(--teal-mid));
+    min-height:100vh;
+    color:var(--ink);
+  }
+  header{
+    text-align:center;
+    padding:24px 16px 10px;
+  }
+  h1{
+    font-family:'Kaushan Script', cursive;
+    color:var(--sun-yellow);
+    text-shadow:2px 2px 0 var(--teal-dark);
+    margin:0 0 4px;
+    font-size:2.2rem;
+  }
+  header p{ color:var(--cream); margin:0; font-size:.85rem; }
+
+  .wrap{
+    max-width:760px;
+    margin:0 auto;
+    padding:20px 16px 60px;
+  }
+
+  /* --- login --- */
+  #loginBox{
+    background:var(--cream);
+    border-radius:14px;
+    padding:28px;
+    max-width:360px;
+    margin:40px auto;
+    box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  #loginBox label{
+    display:block;
+    font-size:.8rem;
+    font-weight:600;
+    margin:12px 0 4px;
+  }
+  #loginBox input{
+    width:100%;
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:inherit;
+    font-size:.95rem;
+  }
+  #loginBox button{
+    width:100%;
+    margin-top:18px;
+    padding:11px;
+    border:none;
+    border-radius:999px;
+    background:var(--teal-dark);
+    color:var(--cream);
+    font-weight:600;
+    font-size:.95rem;
+    cursor:pointer;
+    transition:.2s;
+  }
+  #loginBox button:hover{ background:var(--sun-yellow); color:var(--teal-dark); }
+  #loginError{ color:var(--danger); font-size:.8rem; margin-top:10px; min-height:16px; }
+
+  /* --- panel --- */
+  #panel{ display:none; }
+
+  .card{
+    background:var(--cream);
+    border-radius:14px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 4px 14px rgba(0,0,0,.15);
+  }
+  .card h2{
+    font-size:1.1rem;
+    margin:0 0 14px;
+    color:var(--teal-dark);
+  }
+
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 14px;
+  }
+  .form-grid .full{ grid-column:1 / -1; }
+  .form-grid label{
+    font-size:.75rem;
+    font-weight:600;
+    display:block;
+    margin-bottom:3px;
+  }
+  .form-grid input, .form-grid select, .form-grid textarea{
+    width:100%;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    font-family:inherit;
+    font-size:.9rem;
+  }
+  .form-grid textarea{ resize:vertical; min-height:44px; }
+
+  #addForm button, .row button{
+    border:none;
+    border-radius:999px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:inherit;
+    transition:.2s;
+  }
+  #addForm button[type="submit"]{
+    margin-top:14px;
+    padding:10px 22px;
+    background:var(--teal-dark);
+    color:var(--cream);
+  }
+  #addForm button[type="submit"]:hover{ background:var(--sun-yellow); color:var(--teal-dark); }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.85rem;
+  }
+  th, td{
+    text-align:left;
+    padding:8px 6px;
+    border-bottom:1px solid #e5e0d0;
+    vertical-align:top;
+  }
+  th{ color:var(--teal-dark); font-size:.75rem; text-transform:uppercase; letter-spacing:.04em; }
+  td input, td select, td textarea{
+    width:100%;
+    padding:5px 6px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    font-family:inherit;
+    font-size:.82rem;
+  }
+  .row-actions{ display:flex; gap:6px; }
+  .row-actions button{
+    padding:6px 10px;
+    font-size:.75rem;
+  }
+  .btn-save{ background:var(--teal-dark); color:var(--cream); }
+  .btn-save:hover{ background:var(--sun-yellow); color:var(--teal-dark); }
+  .btn-delete{ background:var(--danger); color:var(--cream); }
+  .btn-delete:hover{ opacity:.85; }
+  .btn-logout{
+    background:transparent;
+    border:2px solid var(--cream);
+    color:var(--cream);
+    padding:8px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  .top-bar{
+    display:flex;
+    justify-content:flex-end;
+    max-width:760px;
+    margin:0 auto 6px;
+    padding:0 16px;
+  }
+  .msg{ font-size:.8rem; margin-top:8px; min-height:14px; }
+  .msg.ok{ color:#1c7a4d; }
+  .msg.err{ color:var(--danger); }
+  .empty-row td{ text-align:center; color:#888; padding:20px; }
+
+  @media (max-width:600px){
+    .form-grid{ grid-template-columns:1fr; }
+    table, thead, tbody, th, td, tr{ display:block; }
+    thead{ display:none; }
+    tr{ margin-bottom:14px; border:1px solid #e5e0d0; border-radius:8px; padding:8px; }
+    td{ border:none; padding:4px 2px; }
+    td::before{ content:attr(data-label); display:block; font-size:.65rem; color:#888; font-weight:600; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Administración</h1>
+  <p>Bar La Piscina · Barcarrota</p>
+</header>
+
+<div class="wrap">
+
+  <div id="loginBox">
+    <label for="user">Usuario</label>
+    <input id="user" type="text" autocomplete="username">
+    <label for="pass">Contraseña</label>
+    <input id="pass" type="password" autocomplete="current-password">
+    <button id="loginBtn">Entrar</button>
+    <div id="loginError"></div>
+  </div>
+
+  <div id="panel">
+    <div class="top-bar" style="max-width:none; margin:0 0 14px; padding:0; justify-content:flex-end;">
+      <button class="btn-logout" id="logoutBtn">Cerrar sesión</button>
+    </div>
+
+    <div class="card">
+      <h2>Añadir producto nuevo</h2>
+      <form id="addForm">
+        <div class="form-grid">
+          <div>
+            <label>Categoría</label>
+            <input list="catList" id="newCategory" placeholder="Ej: Tapas" required>
+            <datalist id="catList">
+              <option value="Tapas">
+              <option value="Raciones">
+              <option value="Hamburguesas">
+              <option value="Bocadillos">
+              <option value="Children">
+              <option value="Merienda">
+              <option value="Patatas">
+              <option value="Postre">
+            </datalist>
+          </div>
+          <div>
+            <label>Nombre</label>
+            <input id="newName" type="text" placeholder="Ej: Croquetas" required>
+          </div>
+          <div>
+            <label>Precio (€)</label>
+            <input id="newPrice" type="number" step="0.01" min="0" placeholder="Ej: 13" required>
+          </div>
+          <div>
+            <label>Orden (opcional)</label>
+            <input id="newOrder" type="number" step="1" placeholder="0">
+          </div>
+          <div class="full">
+            <label>Descripción (opcional)</label>
+            <textarea id="newDesc" placeholder="Ej: Lechuga, tomate, bacon, rulo de cabra..."></textarea>
+          </div>
+        </div>
+        <button type="submit">Añadir a la carta</button>
+        <div class="msg" id="addMsg"></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Productos actuales</h2>
+      <table id="productsTable">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Descripción</th>
+            <th>Orden</th>
+            <th>Activo</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="productsBody">
+          <tr class="empty-row"><td colspan="7">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // ======================================================
+  // CONFIGURACIÓN — usa los mismos valores que en index.html
+  // ======================================================
+  const SUPABASE_URL = 'https://sfbftsrwhjbrrxgagpjs.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_g4PAyzDnk2FU6e7wbHhUGg_qmZYpYeS';
+
+  // Credenciales de acceso al panel (usuario visible para quien entra)
+  const ADMIN_USERNAME = 'adminPiscina';
+  const ADMIN_PASSWORD = 'adminPiscina987';
+  // Email real usado por Supabase Auth para este usuario (ver INSTRUCCIONES.md)
+  const ADMIN_EMAIL = 'adminpiscina@barlapiscina.local';
+
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const loginBox = document.getElementById('loginBox');
+  const panel = document.getElementById('panel');
+  const loginError = document.getElementById('loginError');
+
+  async function checkSession(){
+    const { data } = await supabaseClient.auth.getSession();
+    if(data.session){
+      showPanel();
+    }
+  }
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const user = document.getElementById('user').value.trim();
+    const pass = document.getElementById('pass').value;
+    loginError.textContent = '';
+
+    if(user !== ADMIN_USERNAME || pass !== ADMIN_PASSWORD){
+      loginError.textContent = 'Usuario o contraseña incorrectos.';
+      return;
+    }
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD
+    });
+
+    if(error){
+      loginError.textContent = 'No se pudo iniciar sesión en Supabase: ' + error.message;
+      return;
+    }
+    showPanel();
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  });
+
+  function showPanel(){
+    loginBox.style.display = 'none';
+    panel.style.display = 'block';
+    loadProducts();
+  }
+
+  function formatPrice(p){
+    return Number(p).toFixed(2);
+  }
+
+  async function loadProducts(){
+    const tbody = document.getElementById('productsBody');
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Cargando…</td></tr>';
+
+    const { data, error } = await supabaseClient
+      .from('products')
+      .select('*')
+      .order('category', { ascending: true })
+      .order('sort_order', { ascending: true });
+
+    if(error){
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">Error: ${error.message}</td></tr>`;
+      return;
+    }
+
+    if(!data.length){
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay productos todavía. Añade el primero arriba.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    data.forEach(p => tbody.appendChild(buildRow(p)));
+  }
+
+  function buildRow(p){
+    const tr = document.createElement('tr');
+    tr.dataset.id = p.id;
+    tr.innerHTML = `
+      <td data-label="Categoría"><input type="text" class="f-category" value="${p.category ?? ''}"></td>
+      <td data-label="Nombre"><input type="text" class="f-name" value="${p.name ?? ''}"></td>
+      <td data-label="Precio"><input type="number" step="0.01" class="f-price" value="${formatPrice(p.price)}"></td>
+      <td data-label="Descripción"><textarea class="f-desc">${p.description ?? ''}</textarea></td>
+      <td data-label="Orden"><input type="number" step="1" class="f-order" value="${p.sort_order ?? 0}" style="width:60px"></td>
+      <td data-label="Activo"><input type="checkbox" class="f-active" ${p.active ? 'checked' : ''}></td>
+      <td data-label="">
+        <div class="row-actions">
+          <button class="btn-save">Guardar</button>
+          <button class="btn-delete">Borrar</button>
+        </div>
+        <div class="msg" style="margin-top:4px;"></div>
+      </td>
+    `;
+
+    tr.querySelector('.btn-save').addEventListener('click', () => saveRow(tr, p.id));
+    tr.querySelector('.btn-delete').addEventListener('click', () => deleteRow(tr, p.id));
+    return tr;
+  }
+
+  async function saveRow(tr, id){
+    const msg = tr.querySelector('.msg');
+    const payload = {
+      category: tr.querySelector('.f-category').value.trim(),
+      name: tr.querySelector('.f-name').value.trim(),
+      price: parseFloat(tr.querySelector('.f-price').value),
+      description: tr.querySelector('.f-desc').value.trim() || null,
+      sort_order: parseInt(tr.querySelector('.f-order').value) || 0,
+      active: tr.querySelector('.f-active').checked
+    };
+
+    const { error } = await supabaseClient.from('products').update(payload).eq('id', id);
+    msg.textContent = error ? 'Error: ' + error.message : 'Guardado ✓';
+    msg.className = 'msg ' + (error ? 'err' : 'ok');
+    if(!error) setTimeout(() => msg.textContent = '', 2000);
+  }
+
+  async function deleteRow(tr, id){
+    if(!confirm('¿Seguro que quieres borrar este producto?')) return;
+    const { error } = await supabaseClient.from('products').delete().eq('id', id);
+    if(error){
+      tr.querySelector('.msg').textContent = 'Error: ' + error.message;
+      tr.querySelector('.msg').className = 'msg err';
+      return;
+    }
+    tr.remove();
+  }
+
+  document.getElementById('addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const addMsg = document.getElementById('addMsg');
+
+    const payload = {
+      category: document.getElementById('newCategory').value.trim(),
+      name: document.getElementById('newName').value.trim(),
+      price: parseFloat(document.getElementById('newPrice').value),
+      description: document.getElementById('newDesc').value.trim() || null,
+      sort_order: parseInt(document.getElementById('newOrder').value) || 0,
+      active: true
+    };
+
+    const { error } = await supabaseClient.from('products').insert(payload);
+
+    if(error){
+      addMsg.textContent = 'Error: ' + error.message;
+      addMsg.className = 'msg err';
+      return;
+    }
+
+    addMsg.textContent = 'Producto añadido ✓';
+    addMsg.className = 'msg ok';
+    document.getElementById('addForm').reset();
+    setTimeout(() => addMsg.textContent = '', 2000);
+    loadProducts();
+  });
+
+  checkSession();
+</script>
+
+</body>
+</html>
