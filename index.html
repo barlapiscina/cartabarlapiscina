@@ -29,19 +29,38 @@
     margin:0; padding:0;
     font-family:'Poppins', sans-serif;
     color:var(--ink);
+    min-height:100vh;
+  }
+
+  .bg-layer{
+    position:fixed;
+    inset:0;
+    z-index:-1;
     background:
       linear-gradient(rgba(6,30,31,.62), rgba(6,30,31,.72)),
       url('fondo.png');
     background-size:cover;
     background-position:top center;
     background-repeat:no-repeat;
-    background-attachment:fixed;
-    min-height:100vh;
   }
 
   header{
     height:40vh;
     min-height:280px;
+  }
+
+  @media (max-width:600px){
+    header{
+      height:34vh;
+      min-height:230px;
+    }
+  }
+
+  @media (max-width:380px){
+    header{
+      height:30vh;
+      min-height:200px;
+    }
   }
 
   main{
@@ -117,6 +136,8 @@
 </head>
 <body>
 
+<div class="bg-layer"></div>
+
 <header></header>
 
 <main id="menuMain">
@@ -128,7 +149,7 @@
   // CONFIGURACIÓN DE SUPABASE — rellena estos dos valores
   // (Project Settings → API en tu proyecto de Supabase)
   // ======================================================
-  const SUPABASE_URL = 'https://sfbftsrwhjbrrxgagpjs.supabase.co'; 
+  const SUPABASE_URL = 'https://sfbftsrwhjbrrxgagpjs.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_g4PAyzDnk2FU6e7wbHhUGg_qmZYpYeS';
 
   const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
