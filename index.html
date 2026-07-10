@@ -30,27 +30,25 @@
     font-family:'Poppins', sans-serif;
     color:var(--ink);
     min-height:100vh;
-  }
-
-  body{
     background-color:var(--teal-dark);
-    background-image:
-      linear-gradient(rgba(6,30,31,.62), rgba(6,30,31,.72)),
-      url('fondo.png');
-    background-size:100% auto;
-    background-position:top center;
-    background-repeat:no-repeat;
   }
 
-  /* El fondo "fijo" solo se activa en pantallas grandes (escritorio),
-     donde se soporta de forma fiable. En móvil se queda como fondo
-     normal (se desplaza con la página) para evitar que algunos
-     navegadores integrados (como el de apps de escáner QR) lo rompan
-     o lo oculten por completo. */
-  @media (min-width:900px){
-    body{
-      background-attachment:fixed;
-    }
+  .bg-photo{
+    position:fixed;
+    top:0; left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:top center;
+    z-index:-2;
+    display:block;
+  }
+
+  .bg-tint{
+    position:fixed;
+    inset:0;
+    background:linear-gradient(rgba(6,30,31,.62), rgba(6,30,31,.72));
+    z-index:-1;
   }
 
   header{
@@ -144,6 +142,9 @@
 </style>
 </head>
 <body>
+
+<img class="bg-photo" src="fondo.png" alt="">
+<div class="bg-tint"></div>
 
 <header></header>
 
