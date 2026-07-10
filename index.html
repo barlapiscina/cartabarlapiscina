@@ -40,7 +40,17 @@
     background-size:100% auto;
     background-position:top center;
     background-repeat:no-repeat;
-    background-attachment:fixed;
+  }
+
+  /* El fondo "fijo" solo se activa en pantallas grandes (escritorio),
+     donde se soporta de forma fiable. En móvil se queda como fondo
+     normal (se desplaza con la página) para evitar que algunos
+     navegadores integrados (como el de apps de escáner QR) lo rompan
+     o lo oculten por completo. */
+  @media (min-width:900px){
+    body{
+      background-attachment:fixed;
+    }
   }
 
   header{
